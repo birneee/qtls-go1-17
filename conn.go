@@ -1591,11 +1591,12 @@ func (c *Conn) handshakeComplete() bool {
 
 // FromTrafficSecret creates a new TLS connection without doing a handshake
 // only accepts TLS 1.3 cipher suites
-func FromTrafficSecret(conn net.Conn, cipherSuiteId uint16, rcvTrafficSecret []byte, sendTrafficSecret []byte) *Conn {
+func FromTrafficSecret(conn net.Conn, cipherSuiteId uint16, rcvTrafficSecret []byte, sendTrafficSecret []byte, config *Config, extraConfig *ExtraConfig, isClient bool) *Conn {
 	c := &Conn{
 		conn:        conn,
-		config:      &config{},
-		extraConfig: nil,
+		config:      fromConfig(config),
+		extraConfig: extraConfig,
+		isClient:    isClient,
 	}
 	atomic.StoreUint32(&c.handshakeStatus, 1)
 	c.haveVers = true
