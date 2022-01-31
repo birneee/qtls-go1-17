@@ -1588,3 +1588,21 @@ func (c *Conn) VerifyHostname(host string) error {
 func (c *Conn) handshakeComplete() bool {
 	return atomic.LoadUint32(&c.handshakeStatus) == 1
 }
+
+// FromTrafficSecret creates a new TLS connection without doing a handshake
+// only accepts TLS 1.3 cipher suites
+func FromTrafficSecret(conn net.Conn, cipherSuiteId uint16, rcvTrafficSecret []byte, sendTrafficSecret []byte) *Conn {
+	c := &Conn{
+		conn:        conn,
+		config:      &config{},
+		extraConfig: nil,
+	}
+	atomic.StoreUint32(&c.handshakeStatus, 1)
+	c.haveVers = true
+	c.vers = VersionTLS13
+	c.cipherSuite = cipherSuiteId
+	suite := cipherSuiteTLS13ByID(cipherSuiteId)
+	c.in.setTrafficSecret(suite, rcvTrafficSecret)
+	c.out.setTrafficSecret(suite, sendTrafficSecret)
+	return c
+}
